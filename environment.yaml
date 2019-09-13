@@ -1,0 +1,19 @@
+name: model_fairness
+
+dependencies:
+  - python=3.6.8
+  - pip=19.1.1=py36_0
+  - psutil
+  - lightgbm
+  - pandas
+  - matplotlib
+  - seaborn=0.8.1
+  - numba
+  - tensorflow
+
+  - pip:
+    - neptune-client==0.4.5
+    - neptune-contrib[all]
+    - category_encoders
+    - git+https://github.com/IBM/AIF360.git
+    - BlackBoxAuditing

@@ -1,3 +1,5 @@
+from collections import OrderedDict
+from IPython.display import HTML, Image
 from functools import partial
 
 from aif360.datasets import BinaryLabelDataset
@@ -6,9 +8,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-from neptunecontrib.monitoring.utils import send_figure
-
+import joblib
 
 def make_dataset(data, outcome, protected_columns, 
                  privileged_groups, unprivileged_groups, 
@@ -22,59 +22,62 @@ def make_dataset(data, outcome, protected_columns,
     return dataset
 
 
-def log_fairness_metrics(aif_metric):
+def display_results(results_path):
+    aif_metric, roc_auc = joblib.load(results_path)
+    
     fig = plot_confusion_matrix_by_group(aif_metric, figsize=(12,4))
     plt.tight_layout()
+    fig.savefig('../results/temp_img.png')
     plt.close()
-    send_figure(fig, channel_name='metrics_by_group')
- 
-    group_metrics = ['TPR', 'TNR', 'FPR', 'FNR', 'PPV', 'NPV', 'FDR', 'FOR', 
-                     'ACC', 'error_rate', 'selection_rate', 'power',
-                     'precision', 'recall', 'sensitivity', 'specificity', 
-                    ]
-    
-    for i, metric_name in enumerate(group_metrics):
-        fig, ax = plt.subplots(figsize=(12,8))
-        plot_performance_by_group(aif_metric, metric_name, ax)
-        send_figure(fig, channel_name='metrics_by_group')
-        plt.close()
 
-    log_performance_metrics(aif_metric)
-
+    metrics_dict = OrderedDict(
+        roc_auc_score=roc_auc,
         
-def log_performance_metrics(aif_metric):
-    func_dict={'true_positive_rate_difference': aif_metric.true_positive_rate_difference,
-               'false_positive_rate_difference': aif_metric.false_positive_rate_difference,
-               'false_omission_rate_difference': aif_metric.false_omission_rate_difference,
-               'false_discovery_rate_difference': aif_metric.false_discovery_rate_difference,
-               'error_rate_difference': aif_metric.error_rate_difference,
-               
-               'false_positive_rate_ratio': aif_metric.false_positive_rate_ratio,
-               'false_negative_rate_ratio': aif_metric.false_negative_rate_ratio,
-               'false_omission_rate_ratio': aif_metric.false_omission_rate_ratio,
-               'false_discovery_rate_ratio': aif_metric.false_discovery_rate_ratio,
-               'error_rate_ratio': aif_metric.error_rate_ratio,
-               
-               'average_odds_difference': aif_metric.average_odds_difference,
-               
-               'disparate_impact': aif_metric.disparate_impact,
-               'statistical_parity_difference': aif_metric.statistical_parity_difference,
-               'equal_opportunity_difference': aif_metric.equal_opportunity_difference,
-               'theil_index': aif_metric.theil_index,
-               'between_group_theil_index': aif_metric.between_group_theil_index,
-               'between_all_groups_theil_index': aif_metric.between_all_groups_theil_index,
-               'coefficient_of_variation': aif_metric.coefficient_of_variation,
-               'between_group_coefficient_of_variation': aif_metric.between_group_coefficient_of_variation,
-               'between_all_groups_coefficient_of_variation': aif_metric.between_all_groups_coefficient_of_variation,
+        true_positive_rate_difference=aif_metric.true_positive_rate_difference(),
+        false_positive_rate_difference=aif_metric.false_positive_rate_difference(),
+        false_omission_rate_difference=aif_metric.false_omission_rate_difference(),
+        false_discovery_rate_difference=aif_metric.false_discovery_rate_difference(),
+        error_rate_difference=aif_metric.error_rate_difference(),
 
-               'generalized_entropy_index': aif_metric.generalized_entropy_index,
-               'between_group_generalized_entropy_index': aif_metric.between_group_generalized_entropy_index,
-               'between_all_groups_generalized_entropy_index': aif_metric.between_all_groups_generalized_entropy_index,
-              }
+        false_positive_rate_ratio=aif_metric.false_positive_rate_ratio(),
+        false_negative_rate_ratio=aif_metric.false_negative_rate_ratio(),
+        false_omission_rate_ratio=aif_metric.false_omission_rate_ratio(),
+        false_discovery_rate_ratio=aif_metric.false_discovery_rate_ratio(),
+        error_rate_ratio=aif_metric.error_rate_ratio(),
 
-    for name, func in func_dict.items():
-        score = func()
-        neptune.log_metric(name, score) 
+        average_odds_difference=aif_metric.average_odds_difference(),
+
+        disparate_impact=aif_metric.disparate_impact(),
+        statistical_parity_difference=aif_metric.statistical_parity_difference(),
+        equal_opportunity_difference=aif_metric.equal_opportunity_difference(),
+        theil_index=aif_metric.theil_index(),
+        between_group_theil_index=aif_metric.between_group_theil_index(),
+        between_all_groups_theil_index=aif_metric.between_all_groups_theil_index(),
+        coefficient_of_variation=aif_metric.coefficient_of_variation(),
+        between_group_coefficient_of_variation=aif_metric.between_group_coefficient_of_variation(),
+        between_all_groups_coefficient_of_variation=aif_metric.between_all_groups_coefficient_of_variation(),
+
+        generalized_entropy_index=aif_metric.generalized_entropy_index(),
+        between_group_generalized_entropy_index=aif_metric.between_group_generalized_entropy_index(),
+        between_all_groups_generalized_entropy_index=aif_metric.between_all_groups_generalized_entropy_index())
+    
+    metrics = pd.DataFrame()
+    metrics['metric_names']=metrics_dict.keys()
+    metrics['scores'] = metrics_dict.values()
+    
+    
+    html_table = "<table style='width:100%; border:0px'>{content}</table>"
+    html_row = "<tr style='border:0px'>{content}</tr>"
+    html_cell_left = "<td style='width:30%;vertical-align:top;border:0px'>{content}</td>"
+    html_cell_right = "<td style='width:100%;vertical-align:center;border:100px'>{content}</td>"
+        
+    cell_left = html_cell_left.format(content=metrics.to_html())
+    cell_right = html_cell_right.format(content='<img src="../results/temp_img.png" style="height:300px">')
+
+    row = [cell_left, cell_right]
+    
+    display(HTML(html_table.format(content="".join(row))))
+
         
 def plot_confusion_matrix_by_group(aif_metric, figsize=None):
     if not figsize:

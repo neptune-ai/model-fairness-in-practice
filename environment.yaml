@@ -17,3 +17,4 @@ dependencies:
     - category_encoders
     - git+https://github.com/IBM/AIF360.git
     - BlackBoxAuditing
+    - tensorflow==1.15.0

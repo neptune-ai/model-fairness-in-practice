@@ -14,6 +14,7 @@ def make_dataset(data, outcome, protected_columns,
                  privileged_groups, unprivileged_groups, 
                  favorable_label, unfavorable_label):
     df = data.copy()
+    df.drop(outcome, axis=1, inplace=True)
     df['outcome'] = data[outcome].values
 
     dataset = BinaryLabelDataset(df=df, label_names=['outcome'], protected_attribute_names=protected_columns,

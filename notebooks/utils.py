@@ -10,14 +10,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-def make_dataset(data, outcome, protected_columns, 
-                 privileged_groups, unprivileged_groups, 
-                 favorable_label, unfavorable_label):
-    df = data.copy()
-    df.drop(outcome, axis=1, inplace=True)
-    df['outcome'] = data[outcome].values
 
-    dataset = BinaryLabelDataset(df=df, label_names=['outcome'], protected_attribute_names=protected_columns,
+def make_dataset(features, labels, scores=None, protected_columns=None,
+                 privileged_groups=None, unprivileged_groups=None, 
+                 favorable_label=None, unfavorable_label=None):
+    df = features.copy()
+    df['outcome'] = labels
+    
+    if scores is not None:
+        scores_names = 'scores'
+        df[scores_names] = scores
+    else:
+        scores_names = []
+
+    dataset = BinaryLabelDataset(df=df, label_names=['outcome'], scores_names=scores_names,
+                                 protected_attribute_names=protected_columns,
                                  favorable_label=favorable_label, unfavorable_label=unfavorable_label,
                                  unprivileged_protected_attributes=unprivileged_groups)
     return dataset
@@ -26,7 +33,7 @@ def make_dataset(data, outcome, protected_columns,
 def display_results(results_path):
     aif_metric, roc_auc = joblib.load(results_path)
     
-    fig = plot_confusion_matrix_by_group(aif_metric, figsize=(12,4))
+    fig = plot_confusion_matrix_by_group(aif_metric, figsize=(14,4))
     plt.tight_layout()
     fig.savefig('../results/temp_img.png')
     plt.close()
@@ -70,7 +77,7 @@ def display_results(results_path):
     html_table = "<table style='width:100%; border:0px'>{content}</table>"
     html_row = "<tr style='border:0px'>{content}</tr>"
     html_cell_left = "<td style='width:30%;vertical-align:top;border:0px'>{content}</td>"
-    html_cell_right = "<td style='width:100%;vertical-align:center;border:100px'>{content}</td>"
+    html_cell_right = "<td style='width:70%;vertical-align:center;border:100px'>{content}</td>"
         
     cell_left = html_cell_left.format(content=metrics.to_html())
     cell_right = html_cell_right.format(content='<img src="../results/temp_img.png" style="height:300px">')

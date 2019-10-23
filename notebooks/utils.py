@@ -11,10 +11,14 @@ import seaborn as sns
 import joblib
 
 
-def make_dataset(features, labels, scores=None, protected_columns=None,
+def make_dataset(features, labels=None, scores=None, protected_columns=None,
                  privileged_groups=None, unprivileged_groups=None, 
                  favorable_label=None, unfavorable_label=None):
     df = features.copy()
+    
+    if labels is None:
+        labels = favorable_label
+        
     df['outcome'] = labels
     
     if scores is not None:
@@ -31,7 +35,7 @@ def make_dataset(features, labels, scores=None, protected_columns=None,
 
 
 def display_results(results_path):
-    aif_metric, roc_auc = joblib.load(results_path)
+    aif_metric, acc = joblib.load(results_path)
     
     fig = plot_confusion_matrix_by_group(aif_metric, figsize=(14,4))
     plt.tight_layout()
@@ -39,7 +43,7 @@ def display_results(results_path):
     plt.close()
 
     metrics_dict = OrderedDict(
-        roc_auc_score=roc_auc,
+        accuracy_score=acc,
         
         true_positive_rate_difference=aif_metric.true_positive_rate_difference(),
         false_positive_rate_difference=aif_metric.false_positive_rate_difference(),

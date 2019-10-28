@@ -10,6 +10,7 @@ dependencies:
   - seaborn=0.8.1
   - numba
   - tensorflow
+  - jupyterlab
 
   - pip:
     - neptune-client==0.4.5

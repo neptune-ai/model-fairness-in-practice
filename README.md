@@ -10,10 +10,10 @@ source Makefile
 
 ## Ask me anything
 
-[twitter @NeptuneML](https://twitter.com/NeptuneML)
+[twitter @NeptuneAI](https://twitter.com/NeptuneAI)
 
 [linkedin jakub.czakon](https://www.linkedin.com/in/jakub-czakon-2b797b69/)
 
-[neptune blog jakub.czakon](https://neptune.ml/blog/)
+[neptune blog jakub.czakon](https://neptune.ai/blog/)
 
-email jakub.czakon@neptune.ml
+email jakub.czakon@neptune.ai

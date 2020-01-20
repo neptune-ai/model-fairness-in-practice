@@ -10,7 +10,7 @@ source Makefile
 
 ## Ask me anything
 
-[twitter @NeptuneAI](https://twitter.com/NeptuneAI)
+[twitter @neptune_ai](https://twitter.com/Neptune_ai)
 
 [linkedin jakub.czakon](https://www.linkedin.com/in/jakub-czakon-2b797b69/)
 
